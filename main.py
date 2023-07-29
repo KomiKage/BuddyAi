@@ -39,6 +39,12 @@ charId = 'EEI6sjnddRIJTVC59MODiYjL0-JyDIVI2IEGLkPx2Jk'
 #lain = -ArUgtiToH-xo1DBzWA7Ny8Zm6FxrF54a2s7w8Z_E2E
 #jarvis = 1U5b4Nuuf3LnBLvAbaxUfllTYvttzWH2m4hjvj5ubfE
 
+activateKeyword = 'activate'
+deactivateKeyword = 'shut down'
+deactivateScriptKeyword = 'kill script'
+
+active = False
+
 r = sr.Recognizer()
 playing = False
 
@@ -49,7 +55,7 @@ def sendMessage():
     #entry.delete(first=0,last=999)
     data = client.chat.send_message(charId, message, wait=True)
     print(f"{data['src_char']['participant']['name']}: {data['replies'][0]['text']}")
-    charText = data['replies'][0]['text'] + 'banana'
+    charText = data['replies'][0]['text'] + ''
     mp3 = gtts.gTTS(charText, lang="en")
     mp3.save("output.mp3")
     p = vlc.MediaPlayer("output.mp3")
@@ -62,10 +68,13 @@ def sendMessage():
         playing = False
 
 def sendMessage11():
+    print("Generating response...")
     global playing
     message = MyText
     reply = client.chat.send_message(charId, message, wait=True)
-    data["text"] = reply['replies'][0]['text'] + "banana"
+    data["text"] = reply['replies'][0]['text'] + " [end]"
+    #print(f"{data['src_char']['participant']['name']}: {data['replies'][0]['text']}")
+
     response = requests.post(url, json=data, headers=headers)
 
     mp3 = open('output.mp3', 'wb')
@@ -85,6 +94,7 @@ def sendMessage11():
 while (1):
 
     print("check1")
+    activated = False
     # Exception handling to handle
     # exceptions at the runtime
     try:
@@ -100,15 +110,31 @@ while (1):
             # listens for the user's input
             if playing is False:
                 print("check2")
+                print("-Listening...")
                 audio2 = r.listen(source2)
+                print("Writing...")
 
                 # Using google to recognize audio
                 MyText = r.recognize_google(audio2)
                 MyText = MyText.lower()
 
-                print("User : ", MyText)
-                playing = True
-                sendMessage11()
+                if activateKeyword in MyText:
+                    active = True
+                    activated = True
+                if deactivateKeyword in MyText:
+                    active = False
+                    print("---Shutting down...")
+                if deactivateScriptKeyword in MyText:
+                    quit()
+
+                if active and not activated:
+                    print("User : ", MyText)
+                    playing = True
+                    sendMessage11()
+                if activated:
+                    print("---Activating...")
+                if not activated and not active:
+                    print("Not active")
 
     except sr.RequestError as e:
         print("Could not request results; {0}".format(e))
