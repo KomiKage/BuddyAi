@@ -34,10 +34,20 @@ voicesUrl = "https://api.elevenlabs.io/v1/voices"
 defaultSettingsUrl = "https://api.elevenlabs.io/v1/voices/settings/default"
 
 client = PyCAI('5b5d82736c5aeb027d968351fe4201177b16bde5')
+client.start()
 charId = 'EEI6sjnddRIJTVC59MODiYjL0-JyDIVI2IEGLkPx2Jk'
 
 #lain = -ArUgtiToH-xo1DBzWA7Ny8Zm6FxrF54a2s7w8Z_E2E
 #jarvis = 1U5b4Nuuf3LnBLvAbaxUfllTYvttzWH2m4hjvj5ubfE
+
+chat = client.chat.get_chat(charId)
+
+participants = chat['participants']
+
+if not participants[0]['is_human']:
+    tgt = participants[0]['user']['username']
+else:
+    tgt = participants[1]['user']['username']
 
 activateKeyword = 'activate'
 deactivateKeyword = 'shut down'
@@ -53,7 +63,8 @@ def sendMessage():
     #message = entry.get()
     message = MyText
     #entry.delete(first=0,last=999)
-    data = client.chat.send_message(charId, message, wait=True)
+    data = client.chat.send_message(chat['external_id'], tgt, message, wait=True)
+    #data = client.chat.send_message(charId, message, wait=True)
     print(f"{data['src_char']['participant']['name']}: {data['replies'][0]['text']}")
     charText = data['replies'][0]['text'] + ''
     mp3 = gtts.gTTS(charText, lang="en")
@@ -130,7 +141,7 @@ while (1):
                 if active and not activated:
                     print("User : ", MyText)
                     playing = True
-                    sendMessage11()
+                    sendMessage() #message sending
                 if activated:
                     print("---Activating...")
                 if not activated and not active:
